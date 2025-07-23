@@ -1,0 +1,6 @@
+# This is the most explicit configuration for Netlify.
+[build]
+  # This tells Netlify your main site is in the root folder.
+  publish = "/"
+  # This tells Netlify where your serverless functions are.
+  functions = "netlify/functions/"

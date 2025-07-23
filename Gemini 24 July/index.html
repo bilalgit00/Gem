@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instructor Finder</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- PapaParse CSV Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+
+    <style>
+        /* Custom styles to extend Tailwind */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8f9fa;
+        }
+
+        /* Animation for search results */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in-item {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+
+        /* Custom focus ring color */
+        .form-input:focus, .form-select:focus {
+            outline: none;
+            border-color: #00968f; /* Darker new teal */
+            box-shadow: 0 0 0 3px rgba(0, 178, 169, 0.3); /* New teal with opacity */
+        }
+        
+        /* Custom scrollbar for better aesthetics on desktop */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #00B2A9; /* New teal */
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #00968f; /* Darker new teal */
+        }
+    </style>
+</head>
+<body class="text-[#333333]">
+
+    <div class="container mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">
+
+        <!-- Header Section -->
+        <header class="text-center my-8 md:my-12">
+            <img src="logo.png" alt="Logo" class="h-20 w-auto mx-auto mb-4">
+            <div class="flex items-center justify-center gap-3">
+                <h1 class="text-3xl md:text-4xl font-bold text-black">🎓 Instructor Finder</h1>
+            </div>
+            <p class="mt-2 text-lg text-gray-500">Find Instructors Near You</p>
+        </header>
+
+        <!-- Search Panel Section -->
+        <div class="bg-white p-6 sm:p-8 rounded-xl shadow-lg mb-10 max-w-4xl mx-auto">
+            <form id="search-form" class="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
+                <!-- ZIP Code Input -->
+                <div class="relative md:col-span-5">
+                    <label for="zip-code" class="block text-sm font-medium text-gray-700 mb-1">ZIP Code</label>
+                    <div class="relative">
+                        <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                            <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" /></svg>
+                        </div>
+                        <input type="text" id="zip-code" placeholder="Enter ZIP Code" class="form-input w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg shadow-sm transition duration-150 ease-in-out focus:border-[#00B2A9] focus:ring-[#00B2A9]">
+                    </div>
+                </div>
+
+                <!-- Distance Filter Dropdown -->
+                <div class="relative md:col-span-4">
+                    <label for="distance" class="block text-sm font-medium text-gray-700 mb-1">Distance</label>
+                    <div class="relative">
+                        <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                            <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path d="M5.5 16a3.5 3.5 0 01-3.5-3.5V7.5a3.5 3.5 0 017 0v5a3.5 3.5 0 01-3.5 3.5zm3.5-8.5a.5.5 0 00-1 0v5a.5.5 0 001 0v-5zM5 7.5a.5.5 0 00-1 0v5a.5.5 0 001 0v-5zm7.5 3.5a.5.5 0 000-1h-5a.5.5 0 000 1h5z" /></svg>
+                        </div>
+                        <select id="distance" class="form-select appearance-none w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg shadow-sm transition duration-150 ease-in-out focus:border-[#00B2A9] focus:ring-[#00B2A9]">
+                            <option value="10" selected>Within 10 miles</option>
+                            <option value="20">Within 20 miles</option>
+                            <option value="50">Within 50 miles</option>
+                            <option value="100">Within 100 miles</option>
+                            <option value="200">Within 200 miles</option>
+                            <option value="9999">All Areas</option>
+                        </select>
+                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                            <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Search Button -->
+                <div class="md:col-span-3">
+                    <button type="submit" id="search-button" class="w-full flex items-center justify-center gap-2 bg-[#00B2A9] text-white font-bold py-3 px-6 rounded-lg shadow-md hover:bg-[#00968f] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#00968f] transition-all duration-300 disabled:bg-gray-400 disabled:cursor-not-allowed">
+                        <svg id="search-icon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" /></svg>
+                        <svg id="loading-spinner" class="animate-spin h-5 w-5 text-white hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                        <span>Search</span>
+                    </button>
+                </div>
+            </form>
+            <!-- Search Summary Message -->
+            <div id="search-summary" class="text-center p-3 bg-teal-50 text-teal-800 rounded-lg hidden mt-6">
+            </div>
+        </div>
+
+        <!-- Results Section -->
+        <main id="results-wrapper" class="hidden">
+            <div class="bg-white rounded-lg shadow-lg">
+                <!-- Mobile View: Cards -->
+                <div id="results-list-mobile" class="space-y-4 p-4 md:hidden">
+                    <!-- JS will populate this section for mobile -->
+                </div>
+
+                <!-- Desktop View: Table -->
+                <div id="results-table-desktop" class="hidden md:block">
+                    <table class="w-full text-left table-fixed">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="w-1/6 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                                <th class="w-1/12 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Zip Code</th>
+                                <th class="w-1/6 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">City</th>
+                                <th class="w-1/12 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">State</th>
+                                <th class="w-1/6 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Instructor Type</th>
+                                <th class="w-1/6 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phone</th>
+                                <th class="w-1/6 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                                <th class="w-1/12 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Distance (Miles)</th>
+                                <th class="w-1/12 px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Open to Public</th>
+                            </tr>
+                        </thead>
+                        <tbody id="results-body-desktop" class="divide-y divide-gray-200">
+                            <!-- JS will populate this section for desktop -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+        
+        <!-- No Results Message -->
+        <div id="no-results" class="text-center p-8 bg-white rounded-lg shadow-lg text-gray-500 hidden">
+            <h3 class="text-xl font-semibold mb-2">No Instructors Found</h3>
+            <p>Try expanding your search distance or using a different ZIP code.</p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- DOM Element References ---
+            const searchForm = document.getElementById('search-form');
+            const searchButton = document.getElementById('search-button');
+            const searchIcon = document.getElementById('search-icon');
+            const loadingSpinner = document.getElementById('loading-spinner');
+            const searchSummary = document.getElementById('search-summary');
+            const resultsWrapper = document.getElementById('results-wrapper');
+            const mobileList = document.getElementById('results-list-mobile');
+            const desktopBody = document.getElementById('results-body-desktop');
+            const noResultsMessage = document.getElementById('no-results');
+            const zipInput = document.getElementById('zip-code');
+            const distanceSelect = document.getElementById('distance');
+
+            // --- API and Sheet Configuration ---
+            const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQZRFJO8RSRct5FF5lblW9ZRCvEGLkHChMxnLKcTBZYCcllPKA3QoYb63Fg4t-D1PZ1jqzHT72R0R_E/pub?output=csv";
+            
+            // *** IMPORTANT: The URL to your secure serverless function ***
+            // This relative path will work automatically once deployed to Netlify.
+            const secureApiProxyUrl = '/.netlify/functions/geocode'; 
+            
+            let allInstructors = [];
+
+            /**
+             * Calculates the distance between two lat/lon points in miles.
+             */
+            function haversine(lat1, lon1, lat2, lon2) {
+                const toRad = x => x * Math.PI / 180;
+                const R = 3958.8; // Earth's radius in miles
+                const dLat = toRad(lat2 - lat1);
+                const dLon = toRad(lon2 - lon1);
+                const a = Math.sin(dLat / 2) ** 2 +
+                          Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+                          Math.sin(dLon / 2) ** 2;
+                const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+                return R * c;
+            }
+
+            /**
+             * SECURELY gets latitude and longitude by calling your back-end proxy.
+             */
+            async function getLatLng(zip) {
+                // This function now calls YOUR secure server, not Google's directly.
+                const response = await fetch(`${secureApiProxyUrl}?zip=${zip}`);
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.message || "Error fetching location data.");
+                }
+                const data = await response.json();
+                return data; // Expects { lat: ..., lng: ... }
+            }
+            
+            /**
+             * Fetches and parses data from the Google Sheet.
+             */
+            async function loadInstructorData() {
+                try {
+                    const response = await fetch(sheetUrl);
+                    if (!response.ok) throw new Error(`Network response was not ok: ${response.statusText}`);
+                    const csv = await response.text();
+                    const parsed = Papa.parse(csv, { header: true, skipEmptyLines: true });
+                    allInstructors = parsed.data;
+                } catch (error) {
+                    console.error("Failed to fetch or parse instructor data:", error);
+                    noResultsMessage.innerHTML = `<h3 class="text-xl font-semibold mb-2 text-red-500">Error Loading Data</h3><p>Could not load instructor information. Please try again later.</p>`;
+                    noResultsMessage.classList.remove('hidden');
+                }
+            }
+
+            /**
+             * Renders the filtered and sorted results to both mobile and desktop views.
+             */
+            function renderResults(instructors, zip) {
+                mobileList.innerHTML = '';
+                desktopBody.innerHTML = '';
+
+                if (instructors.length === 0) {
+                    resultsWrapper.classList.add('hidden');
+                    noResultsMessage.classList.remove('hidden');
+                    searchSummary.classList.add('hidden');
+                    return;
+                }
+                
+                resultsWrapper.classList.remove('hidden');
+                noResultsMessage.classList.add('hidden');
+                
+                searchSummary.textContent = `Found ${instructors.length} instructor(s) near ZIP ${zip}`;
+                searchSummary.classList.remove('hidden');
+
+                instructors.sort((a, b) => a.distance - b.distance);
+
+                instructors.forEach((instructor) => {
+                    const publicValue = instructor["Open to Public"]?.trim();
+                    const openToPublicDisplay = publicValue ? publicValue : 'N/A';
+                    
+                    const instructorTypeTag = `<span class="text-xs font-semibold inline-block py-1 px-2.5 leading-none text-center whitespace-nowrap align-baseline rounded-full bg-blue-200 text-blue-700 group-hover:bg-white group-hover:text-[#00968f]">${instructor["Instructor Type"] || ''}</span>`;
+                    const distanceText = (instructor.distance != null ? instructor.distance.toFixed(1) : '0.0') + ' mi';
+
+                    // --- Create Mobile Card ---
+                    const card = document.createElement('div');
+                    card.className = 'fade-in-item bg-white p-4 rounded-lg border border-gray-200';
+                    card.innerHTML = `
+                        <div class="flex justify-between items-start mb-3">
+                            <h3 class="font-bold text-lg text-black pr-2">${instructor.Name || ''}</h3>
+                            <span class="text-sm font-bold text-white bg-[#00B2A9] px-3 py-1 rounded-full whitespace-nowrap">${distanceText}</span>
+                        </div>
+                        <div class="space-y-3 text-sm text-gray-600">
+                             <div class="flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" /></svg>
+                                <span>${instructor.City || ''}, ${instructor.State || ''} ${instructor["Zip Code"] || ''}</span>
+                            </div>
+                            <div class="flex flex-wrap items-center gap-2">${instructorTypeTag}</div>
+                            <div class="flex flex-wrap items-center gap-2">Open to Public: <span class="font-semibold">${openToPublicDisplay}</span></div>
+                        </div>
+                        <div class="mt-4 pt-4 border-t border-gray-200 text-sm space-y-2">
+                            <div class="flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500" viewBox="0 0 20 20" fill="currentColor"><path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.518.759a11.03 11.03 0 004.28 4.28l.759-1.518a1 1 0 011.06-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" /></svg>
+                                <a href="tel:${instructor["Phone Number"] || ''}" class="text-[#00B2A9] hover:underline">${instructor["Phone Number"] || ''}</a>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500" viewBox="0 0 20 20" fill="currentColor"><path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" /><path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" /></svg>
+                                <a href="mailto:${instructor.Email || ''}" class="text-[#00B2A9] hover:underline">${instructor.Email || ''}</a>
+                            </div>
+                        </div>`;
+                    mobileList.appendChild(card);
+
+                    // --- Create Desktop Row ---
+                    const row = document.createElement('tr');
+                    row.className = 'fade-in-item group hover:bg-[#00968f] transition-colors duration-200';
+                    row.innerHTML = `
+                        <td class="px-4 py-4 text-sm font-medium text-gray-900 group-hover:text-white">${instructor.Name || ''}</td>
+                        <td class="px-4 py-4 text-sm text-gray-500 group-hover:text-white">${instructor["Zip Code"] || ''}</td>
+                        <td class="px-4 py-4 text-sm text-gray-500 group-hover:text-white">${instructor.City || ''}</td>
+                        <td class="px-4 py-4 text-sm text-gray-500 group-hover:text-white">${instructor.State || ''}</td>
+                        <td class="px-4 py-4 text-sm text-gray-500 group-hover:text-white">${instructorTypeTag}</td>
+                        <td class="px-4 py-4 text-sm"><a href="tel:${instructor["Phone Number"] || ''}" class="text-[#00B2A9] hover:underline group-hover:text-white">${instructor["Phone Number"] || ''}</a></td>
+                        <td class="px-4 py-4 text-sm text-gray-500 break-all"><a href="mailto:${instructor.Email || ''}" class="text-[#00B2A9] hover:underline group-hover:text-white">${instructor.Email || ''}</a></td>
+                        <td class="px-4 py-4 text-sm font-bold text-center text-[#00B2A9] group-hover:text-white">${distanceText}</td>
+                        <td class="px-4 py-4 text-sm text-center text-gray-500 group-hover:text-white">${openToPublicDisplay}</td>
+                    `;
+                    desktopBody.appendChild(row);
+                });
+            }
+
+            function toggleLoading(isLoading) {
+                searchButton.disabled = isLoading;
+                if (isLoading) {
+                    searchIcon.classList.add('hidden');
+                    loadingSpinner.classList.remove('hidden');
+                } else {
+                    searchIcon.classList.remove('hidden');
+                    loadingSpinner.classList.add('hidden');
+                }
+            }
+            
+            async function handleSearch() {
+                toggleLoading(true);
+                const zip = zipInput.value.trim();
+                const radius = parseFloat(distanceSelect.value);
+
+                if (!zip) {
+                    searchSummary.textContent = "Please enter a ZIP code.";
+                    searchSummary.classList.remove('hidden');
+                    toggleLoading(false);
+                    return;
+                }
+
+                try {
+                    const userLocation = await getLatLng(zip);
+                    const results = [];
+
+                    for (const instructor of allInstructors) {
+                        const lat = instructor.Latitude;
+                        const lng = instructor.Longitude;
+                        if (!lat || !lng) continue;
+
+                        const distance = haversine(
+                            userLocation.lat,
+                            userLocation.lng,
+                            parseFloat(lat),
+                            parseFloat(lng)
+                        );
+
+                        if (distance <= radius) {
+                            instructor.distance = distance;
+                            results.push(instructor);
+                        }
+                    }
+                    renderResults(results, zip);
+                } catch (error) {
+                    console.error("Search error:", error);
+                    searchSummary.textContent = `❌ ${error.message}`;
+                    searchSummary.classList.remove('hidden');
+                    resultsWrapper.classList.add('hidden');
+                    noResultsMessage.classList.add('hidden');
+                } finally {
+                    toggleLoading(false);
+                }
+            }
+
+            // --- Event Listeners ---
+            searchForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                handleSearch();
+            });
+            
+            // --- Initial Load ---
+            loadInstructorData();
+        });
+    </script>
+
+</body>
+</html>
